@@ -1,105 +1,101 @@
 /*
-Week 5 — Example 1: Top-Down Camera Follow (Centered, No Bounds)
+Week 5 — Example 5: Side-Scroller Platformer with JSON Levels + Modular Camera
 
 Course: GBDA302 | Instructors: Dr. Karen Cochrane & David Han
 Date: Feb. 12, 2026
 
-Move: WASD/Arrows
+Move: WASD/Arrows | Jump: Space
 
-Goal:
-- Keep player position in world space
-- Compute a camera offset from the player (view state)
-- Draw world using translate(-cam.x, -cam.y)
-- Draw HUD in screen space (no translate)
+Learning goals:
+- Build a side-scrolling platformer using modular game systems
+- Load complete level definitions from external JSON (LevelLoader + levels.json)
+- Separate responsibilities across classes (Player, Platform, Camera, World)
+- Implement gravity, jumping, and collision with platforms
+- Use a dedicated Camera2D class for smooth horizontal tracking
+- Support multiple levels and easy tuning through data files
+- Explore scalable project architecture for larger games
 */
 
-let player = { x: 300, y: 300, s: 3 }; // player in WORLD coords
-let cam = { x: 0, y: 0 }; // camera top-left in WORLD coords
-
-// World size (we draw a world rectangle + features, but we do NOT clamp camera)
-const WORLD_W = 2400;
-const WORLD_H = 1600;
-
-// Canvas / viewport size (SCREEN coords)
 const VIEW_W = 800;
 const VIEW_H = 480;
+
+let allLevelsData;
+let levelIndex = 0;
+
+let level;
+let player;
+let cam;
+
+function preload() {
+  allLevelsData = loadJSON("levels.json"); // levels.json beside index.html [web:122]
+}
 
 function setup() {
   createCanvas(VIEW_W, VIEW_H);
   textFont("sans-serif");
   textSize(14);
-  noStroke();
+
+  cam = new Camera2D(width, height);
+  loadLevel(levelIndex);
+}
+
+function loadLevel(i) {
+  level = LevelLoader.fromLevelsJson(allLevelsData, i);
+
+  player = new BlobPlayer();
+  player.spawnFromLevel(level);
+
+  cam.x = player.x - width / 2;
+  cam.y = 0;
+  cam.clampToWorld(level.w, level.h);
 }
 
 function draw() {
-  // ---------- 1) UPDATE GAME STATE (WORLD) ----------
-  // Input becomes a direction vector (dx, dy)
-  const dx =
-    (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) -
-    (keyIsDown(LEFT_ARROW) || keyIsDown(65));
+  // --- game state ---
+  player.update(level);
 
-  const dy =
-    (keyIsDown(DOWN_ARROW) || keyIsDown(83)) -
-    (keyIsDown(UP_ARROW) || keyIsDown(87));
-
-  // Cheap diagonal normalization so diagonals aren’t faster
-  const len = max(1, abs(dx) + abs(dy));
-
-  // Move player in WORLD space (no bounds in Example 1)
-  player.x += (dx / len) * player.s;
-  player.y += (dy / len) * player.s;
-
-  // ---------- 2) UPDATE VIEW STATE (CAMERA) ----------
-  // Center camera on player (NO constrain / bounds here)
-  cam.x = player.x - width / 2;
-  cam.y = player.y - height / 2;
-
-  // ---------- 3) DRAW ----------
-  background(220);
-
-  // Draw the WORLD (scrolling layer) in world space
-  push();
-  translate(-cam.x, -cam.y);
-
-  // World background rectangle (so you can see the “world area”)
-  noStroke();
-  fill(235);
-  rect(0, 0, WORLD_W, WORLD_H);
-
-  // Grid lines make camera motion easy to see
-  stroke(245);
-  for (let x = 0; x <= WORLD_W; x += 160) line(x, 0, x, WORLD_H);
-  for (let y = 0; y <= WORLD_H; y += 160) line(0, y, WORLD_W, y);
-
-  // Obstacles (static world features)
-  noStroke();
-  fill(170, 190, 210);
-  for (let i = 0; i < 30; i++) {
-    const x = (i * 280) % WORLD_W;
-    const y = (i * 180) % WORLD_H;
-    rect(x + 40, y + 40, 80, 80, 10);
+  // Fall death → respawn
+  if (player.y - player.r > level.deathY) {
+    loadLevel(levelIndex);
+    return;
   }
 
-  // Player (in world space)
-  fill(50, 110, 255);
-  rect(player.x - 12, player.y - 12, 24, 24, 5);
+  // --- view state (data-driven smoothing) ---
+  cam.followSideScrollerX(player.x, level.camLerp);
+  cam.y = 0;
+  cam.clampToWorld(level.w, level.h);
 
-  pop();
+  // --- draw ---
+  cam.begin();
+  level.drawWorld();
+  player.draw(level.theme.blob);
+  cam.end();
 
-  // HUD (screen space): drawn AFTER pop(), so it does not move with camera
+  // HUD
+  fill(0);
   noStroke();
-  fill(20);
-  text("Week 5 — Centered camera (no bounds). WASD/Arrows to move.", 12, 20);
+  text(level.name + " (Example 5)", 10, 18);
+  text("A/D or ←/→ move • Space/W/↑ jump • Fall = respawn", 10, 36);
+  text("camLerp(JSON): " + level.camLerp + "  world.w: " + level.w, 10, 54);
+  text("cam: " + cam.x + ", " + cam.y, 10, 90);
+  const p0 = level.platforms[0];
+  text(`p0: x=${p0.x} y=${p0.y} w=${p0.w} h=${p0.h}`, 10, 108);
+
   text(
-    "Player(world): " +
-      (player.x | 0) +
-      ", " +
-      (player.y | 0) +
-      "   Cam(world): " +
-      (cam.x | 0) +
-      ", " +
-      (cam.y | 0),
-    12,
-    40,
+    "platforms: " +
+      level.platforms.length +
+      " start: " +
+      level.start.x +
+      "," +
+      level.start.y,
+    10,
+    72,
   );
+}
+
+function keyPressed() {
+  if (key === " " || key === "W" || key === "w" || keyCode === UP_ARROW) {
+    player.tryJump();
+  }
+  if (key === "r" || key === "R") loadLevel(levelIndex);
 }
