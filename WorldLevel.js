@@ -2,7 +2,6 @@ class WorldLevel {
   constructor(json) {
     this.schemaVersion = json.schemaVersion ?? 1;
 
-    // World size and background
     this.w = json.world?.w ?? 2400;
     this.h = json.world?.h ?? 1600;
     this.bg = json.world?.bg ?? [235, 235, 235];
@@ -11,12 +10,10 @@ class WorldLevel {
     this.obstacles = json.obstacles ?? [];
     this.camLerp = json.camera?.lerp ?? 0.12;
 
-    // Desserts will be generated after p5 is ready
-    this.desserts = [];
+    this.desserts = []; // empty for now
   }
 
   drawBackground() {
-    // Vanilla → strawberry gradient sky
     for (let y = 0; y < height; y++) {
       let t = y / height;
       let r = lerp(255, 255, t);
@@ -30,49 +27,79 @@ class WorldLevel {
   drawWorld() {
     noStroke();
 
-    // Base layers
-    fill(255, 228, 196); // vanilla cake base
+    fill(255, 228, 196);
     rect(0, 0, this.w, this.h);
 
-    fill(139, 69, 19); // chocolate layer
+    fill(139, 69, 19);
     rect(0, this.h * 0.75, this.w, this.h * 0.25);
 
     // Draw desserts
     for (const d of this.desserts) {
-      fill(d.color[0], d.color[1], d.color[2]);
+      push();
+      translate(d.x + d.w / 2, d.y + d.h / 2); // Center of the dessert area
+      noStroke();
+
+      // Use a uniform size based on the smaller dimension to prevent stretching
+      let size = min(d.w, d.h);
+      let hw = size / 2;
+      let hh = size / 2;
 
       if (d.type === 0) {
-        // 🍰 Cake
-        rect(d.x, d.y, d.w, d.h, 20);
+        // 🍪 Macaron / Cake
+        // Bottom shell
+        fill(d.color[0], d.color[1], d.color[2]);
+        rect(-hw, hh * 0.2, size, hh * 0.8, 20);
+        
+        // Filling (Cream)
         fill(255);
-        rect(d.x, d.y - 8, d.w, 10, 10);
-      } 
-      else if (d.type === 1) {
-        // 🍩 Donut
-        ellipse(d.x + d.w/2, d.y + d.h/2, d.w, d.h);
-        fill(255, 228, 196);
-        ellipse(d.x + d.w/2, d.y + d.h/2, d.w*0.4, d.h*0.4);
-      } 
-      else {
-        // 🍦 Ice cream
-        fill(222, 184, 135);
-        triangle(
-          d.x, d.y + d.h,
-          d.x + d.w, d.y + d.h,
-          d.x + d.w/2, d.y + d.h + d.h*0.5
-        );
-        fill(255, 182, 193);
-        ellipse(d.x + d.w/2, d.y + d.h/2, d.w, d.h);
-      }
+        rect(-hw, -hh * 0.2, size, hh * 0.4, 5);
+        
+        // Top shell
+        fill(d.color[0], d.color[1], d.color[2]);
+        rect(-hw, -hh, size, hh * 0.8, 20);
 
-      // Sprinkles
-      fill(255, 255, 200);
-      for (let i=0; i<5; i++){
-        ellipse(d.x + random(d.w), d.y + random(d.h), 4, 4);
+      } else if (d.type === 1) {
+        // 🍩 Donut
+        // Dough
+        fill(210, 180, 140); 
+        ellipse(0, 0, size, size);
+        
+        // Glaze
+        fill(d.color[0], d.color[1], d.color[2]);
+        ellipse(0, 0, size * 0.85, size * 0.85);
+        
+        // Hole
+        fill(255, 228, 196); // Match ground color
+        ellipse(0, 0, size * 0.3, size * 0.3);
+
+      } else {
+        // 🍦 Ice Cream
+        // Cone
+        fill(210, 140, 60);
+        triangle(
+          -hw * 0.6, 0,
+          hw * 0.6, 0,
+          0, hh * 1.4
+        );
+        
+        // Waffle pattern on cone
+        stroke(180, 110, 40);
+        strokeWeight(1);
+        line(-hw * 0.3, hh * 0.1, 0, hh * 0.6);
+        line(hw * 0.3, hh * 0.1, 0, hh * 0.6);
+        noStroke();
+
+        // Scoop
+        fill(d.color[0], d.color[1], d.color[2]);
+        ellipse(0, -hh * 0.3, size * 0.9, size * 0.7);
+        
+        // Cherry on top
+        fill(255, 50, 50);
+        ellipse(0, -hh * 0.9, size * 0.2, size * 0.2);
       }
+      pop();
     }
 
-    // Optional: grid overlay
     stroke(245);
     for (let x = 0; x <= this.w; x += this.gridStep) line(x, 0, x, this.h);
     for (let y = 0; y <= this.h; y += this.gridStep) line(0, y, this.w, y);
