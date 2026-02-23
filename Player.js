@@ -20,8 +20,21 @@ class Player {
   }
 
   draw() {
-    fill(50, 110, 255);
+    push();
+    translate(this.x, this.y);
     noStroke();
-    rect(this.x - 12, this.y - 12, 24, 24, 5);
+
+    // Single rounded whipped cream dollop
+    fill(255);
+    // Main body - a full ellipse for a round bottom
+    ellipse(0, 0, 36, 30);
+    
+    // Top swirl/peak
+    fill(250);
+    ellipse(0, -8, 20, 16);
+    fill(245);
+    triangle(-6, -11, 6, -11, 0, -24);
+
+    pop();
   }
 }
