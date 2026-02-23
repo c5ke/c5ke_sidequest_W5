@@ -35,6 +35,34 @@ function setup() {
   textSize(14);
 
   level = new WorldLevel(worldData);
+  // After level = new WorldLevel(worldData);
+function generateDesserts() {
+  // Desserts for obstacles
+  for (const o of level.obstacles) {
+    level.desserts.push({
+      x: o.x,
+      y: o.y,
+      w: o.w,
+      h: o.h,
+      type: floor(random(3)),
+      color: [random(230,255), random(180,220), random(180,220)]
+    });
+  }
+
+  // Additional random scattered desserts
+  for (let i = 0; i < 50; i++) {
+    level.desserts.push({
+      x: random(0, level.w - 50),
+      y: random(0, level.h - 50),
+      w: random(40, 80),
+      h: random(30, 70),
+      type: floor(random(3)),
+      color: [random(230,255), random(180,220), random(180,220)]
+    });
+  }
+}
+
+generateDesserts();
 
   const start = worldData.playerStart ?? { x: 300, y: 300, speed: 3 };
   player = new Player(start.x, start.y, start.speed);
