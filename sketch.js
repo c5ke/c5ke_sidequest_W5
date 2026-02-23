@@ -39,7 +39,7 @@ function setup() {
 }
 
 function draw() {
-  player.updateInput();
+  player.updateInput(level);
 
   // Keep player inside world
   player.x = constrain(player.x, 0, level.w);

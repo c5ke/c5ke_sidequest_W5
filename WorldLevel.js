@@ -37,11 +37,26 @@ class WorldLevel {
   drawWorld() {
     noStroke();
 
+    // Ground (Biscuit/Sand color)
     fill(255, 228, 196);
     rect(0, 0, this.w, this.h);
 
-    fill(139, 69, 19);
-    rect(0, this.h * 0.75, this.w, this.h * 0.25);
+    // Chocolate River (Flowing through the world)
+    fill(60, 30, 10); // Dark chocolate
+    let riverY = this.h * 0.45;
+    let riverH = 150;
+    rect(0, riverY, this.w, riverH);
+    
+    // Subtle river flow highlights for meditative motion
+    stroke(90, 50, 20);
+    strokeWeight(3);
+    for (let i = 0; i < 15; i++) {
+      let flowX = (frameCount * 1.2 + i * 250) % this.w;
+      line(flowX, riverY + 30, flowX + 60, riverY + 30);
+      line((flowX + 120) % this.w, riverY + 75, (flowX + 180) % this.w, riverY + 75);
+      line((flowX + 40) % this.w, riverY + 120, (flowX + 100) % this.w, riverY + 120);
+    }
+    noStroke();
 
     // Draw desserts
     for (const d of this.desserts) {
@@ -113,6 +128,12 @@ class WorldLevel {
     stroke(245);
     for (let x = 0; x <= this.w; x += this.gridStep) line(x, 0, x, this.h);
     for (let y = 0; y <= this.h; y += this.gridStep) line(0, y, this.w, y);
+  }
+
+  isOnRiver(px, py) {
+    let riverY = this.h * 0.45;
+    let riverH = 150;
+    return py > riverY && py < riverY + riverH;
   }
 
   drawHUD(player, camX, camY) {

@@ -5,7 +5,7 @@ class Player {
     this.s = (speed ?? 3) * 0.5; // Slowed down for reflective pacing
   }
 
-  updateInput() {
+  updateInput(level) {
     const dx =
       (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) -
       (keyIsDown(LEFT_ARROW) || keyIsDown(65));
@@ -17,6 +17,11 @@ class Player {
     const len = max(1, abs(dx) + abs(dy));
     this.x += (dx / len) * this.s;
     this.y += (dy / len) * this.s;
+
+    // River current: move player with the river if they are on it
+    if (level && level.isOnRiver(this.x, this.y)) {
+      this.x += 1.2; // Match the visual flow speed (frameCount * 1.2)
+    }
   }
 
   draw() {
