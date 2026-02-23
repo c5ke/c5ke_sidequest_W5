@@ -10,13 +10,13 @@ Cherry Ke c5ke 21090404
 
 ## Description
 
-Sidequest 5 for gbda 302
+Sidequest 5 for gbda 302. Find desserts around the map and a chocolate river to interact with.
 
 ---
 
 ## Interaction Instructions
 
-Move around using WASD or arrows and explore the map
+Move around using WASD or arrows and explore the map.
 
 ---
 
