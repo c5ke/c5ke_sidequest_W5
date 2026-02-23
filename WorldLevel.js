@@ -14,20 +14,42 @@ class WorldLevel {
   }
 
   drawBackground() {
-    background(220);
+  // Soft vanilla → strawberry gradient
+  for (let y = 0; y < height; y++) {
+    let t = y / height;
+    let r = lerp(255, 255, t);
+    let g = lerp(240, 182, t);
+    let b = lerp(220, 193, t);
+    stroke(r, g, b);
+    line(0, y, width, y);
   }
+}
 
   drawWorld() {
     noStroke();
     fill(this.bg[0], this.bg[1], this.bg[2]);
-    rect(0, 0, this.w, this.h);
+    
 
     stroke(245);
     for (let x = 0; x <= this.w; x += this.gridStep) line(x, 0, x, this.h);
     for (let y = 0; y <= this.h; y += this.gridStep) line(0, y, this.w, y);
 
     noStroke();
-    fill(170, 190, 210);
+    for (const o of this.obstacles) {
+  fill(random(230,255), random(180,220), random(180,220));
+  rect(o.x, o.y, o.w, o.h, o.r ?? 20);
+
+  // Sprinkle dots
+  fill(255);
+  for (let i = 0; i < 10; i++) {
+    ellipse(
+      o.x + random(o.w),
+      o.y + random(o.h),
+      4,
+      4
+    );
+  }
+}
     for (const o of this.obstacles) rect(o.x, o.y, o.w, o.h, o.r ?? 0);
   }
 
