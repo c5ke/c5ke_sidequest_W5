@@ -55,8 +55,8 @@ function draw() {
   targetX = constrain(targetX, 0, maxCamX);
   targetY = constrain(targetY, 0, maxCamY);
 
-  // Smooth follow using JSON lerp
-  const camLerp = level.camLerp;
+  // Smooth follow using JSON lerp (slowed down for meditative feel)
+  const camLerp = level.camLerp * 0.3; 
   camX = lerp(camX, targetX, camLerp);
   camY = lerp(camY, targetY, camLerp);
 

@@ -16,11 +16,21 @@ class WorldLevel {
   drawBackground() {
     for (let y = 0; y < height; y++) {
       let t = y / height;
-      let r = lerp(255, 255, t);
-      let g = lerp(240, 182, t);
-      let b = lerp(220, 193, t);
+      // Softer, more ethereal gradient
+      let r = lerp(255, 250, t);
+      let g = lerp(245, 230, t);
+      let b = lerp(250, 240, t);
       stroke(r, g, b);
       line(0, y, width, y);
+    }
+
+    // Add subtle floating "sugar dust" for atmosphere
+    noStroke();
+    fill(255, 255, 255, 150);
+    for (let i = 0; i < 10; i++) {
+      let x = (noise(frameCount * 0.005, i) * width);
+      let y = (noise(i, frameCount * 0.005) * height);
+      ellipse(x, y, 2, 2);
     }
   }
 
